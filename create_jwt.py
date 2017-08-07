@@ -6,23 +6,26 @@ import datetime
 import requests
 
 def create_token():
-  keyfile = open("YOUR_FILENAME.p8", 'r')
+  # Replace YOUR_FILENAME with the filename of your secret key
+  filename = "YOUR_FILENAME.p8"
+  keyId = "1121212121"
+  teamId = "2222222222"
+
+  keyfile = open(filename, 'r')
   secret = keyfile.read()
 
-  kid = "6666666666"
-  iss = "9999999999"
   iat = datetime.datetime.now()
   exp = datetime.datetime.now() + datetime.timedelta(weeks=6)
 
   payload = {
-    "iss": iss,
+    "iss": teamId,
     "exp": exp,
     "iat": iat
   }
 
   headers = {
     "alg": "ES256",
-    "kid": kid
+    "kid": keyId
   }
 
   token = jwt.encode(payload, secret, algorithm='ES256', headers=headers)
@@ -31,13 +34,18 @@ def create_token():
 def make_request(token):
   url = "https://api.music.apple.com/v1/catalog/us/charts?types=songs,albums&genre=20&limit=1"
   headers = {"Authorization": "Bearer {}".format(token)}
-  print(headers)
   response = requests.get(url, headers=headers, allow_redirects=False)
-  print(response.content)
+
+  print("\n\n-----RESPONSE------")
   print(response.status_code)
+  print(response.content)
 
 if __name__ == "__main__":
-  token = create_token()
-  print(token.decode('utf-8'))
+  token = create_token().decode('utf-8')
 
-  make_request(token.decode('utf-8'))
+  print("\n\n-----TOKEN------")
+  print(token)
+  print("\n\n-----CURL-------")
+  print("curl -v -H 'Authorization: Bearer {}' \"https://api.music.apple.com/v1/catalog/us/charts?types=songs,albums&genre=20&limit=1\" ".format(token))
+
+  make_request(token)
